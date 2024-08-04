@@ -1,0 +1,29 @@
+.container{
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+form{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  
+}
+
+main{
+  text-align: justify;
+}
+
+img{
+  margin-top: 0.5rem;
+  border: 2px solid #fff;
+  transition: all 0.3s ease;
+  
+}
+
+img:hover{
+  box-shadow: 0 0 10px 2px #fff;
+  transform: scale(1.02);
+}

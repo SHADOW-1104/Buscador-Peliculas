@@ -1,63 +1,95 @@
-import { RenderMovies } from './components/Movies'
-import { useMovies } from './hooks/useMovies'
-import { noResultsErrorMessage } from './hooks/noResults'
-import { useFormSubmit } from './hooks/useSearch'
-// import { useRef } from 'react'
+import './App.css'
+import { useMovies } from './hooks/useMovies.js'
+import { Movies } from './components/Movies.jsx'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import debounce from 'just-debounce-it'
 
+function useSearch() {
+  const [search, updateSearch] = useState('')
+  const [error, setError] = useState(null)
+  const isFirstInput = useRef(true)
+
+  useEffect(() => {
+    if (isFirstInput.current) {
+      isFirstInput.current = search === ''
+      return
+    }
+
+    if (search === '') {
+      setError('No se puede buscar una película vacía')
+      return
+    }
+
+    if (search.match(/^\d+$/)) {
+      setError('No se puede buscar una película con un número')
+      return
+    }
+
+    if (search.length < 3) {
+      setError('La búsqueda debe tener al menos 3 caracteres')
+      return
+    }
+
+    setError(null)
+  }, [search])
+
+  return { search, updateSearch, error }
+}
 
 export const App = () => {
-  // const API_KEY = 'ebfbc60b'
-  // const MOVIES_ENDPOINT = `https://www.omdbapi.com/?apikey=${API_KEY}&s=`
-  const noMovies = noResultsErrorMessage()
-  const { movies: mappedMovies } = useMovies() //recive un objeto desde el customhook useMovies.js
-  const { inputFields, handleSubmit } = useFormSubmit()
+  const [sort, setSort] = useState(false)
 
-  //   METODO 1 USANDO => useRef()
+  const { search, updateSearch, error } = useSearch()
+  const { movies, loading, getMovies } = useMovies({ search, sort })
 
-  // const inputRef = useRef()
+  const debouncedGetMovies = useCallback(
+    debounce(search => {
+      console.log('search', search)
+      getMovies({ search })
+    }, 300)
+    , [getMovies]
+  )
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault()
-  //   const value = inputRef.current.value
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    getMovies({ search })
+  }
 
-  //   if (value === '') return
-  //   console.log(value)
-  //   inputRef.current.value = ''
-  // }
+  const handleSort = () => {
+    setSort(!sort)
+  }
 
-  // METODO 2 USANDO SOLO JAVASCRIPT
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault()
-
-  //   //Recuperamos todos los values de todos los inputs
-  //   const inputFields = Object.fromEntries(new window.FormData(e.target))
-  //   if (inputFields.search === '') return
-  //   console.log(inputFields)
-  //   e.target.reset()
-  // }
-
+  const handleChange = (event) => {
+    const newSearch = event.target.value
+    updateSearch(newSearch)
+    debouncedGetMovies(newSearch)
+  }
 
   return (
-    <div className="container">
+    <div className='page'>
+
       <header>
-        <h1>Buscador de Peliculas</h1>
-        <form onSubmit={handleSubmit}>
-          <label>
-            <input type="search" name="search" id="search" autoComplete="off" placeholder="Ej. Avengers, etc..." />
-            {/* Para que funcione con ref tienes que poner una propiedad ref={inputRef} */}
-          </label>
-          <button type="submit">Search</button>
+        <h1>Buscador de películas</h1>
+        <form className='form' onSubmit={handleSubmit}>
+          <input
+            style={{
+              border: '1px solid transparent',
+              borderColor: error ? 'red' : 'transparent'
+            }} onChange={handleChange} value={search} name='query' placeholder='Avengers, Star Wars, The Matrix...'
+          />
+          {/* <input type='checkbox' onChange={handleSort} checked={sort} /> */}
+          <button type='submit'>Buscar</button>
         </form>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
       </header>
-      {
-        inputFields.search && <h4>Resultados para: {inputFields.search}</h4>
-      }
+
       <main>
         {
-          <RenderMovies movies={mappedMovies} noMovies={noMovies} /> //Mandamos las props al componente hijo Movies.jsx
+          loading ? <p>Cargando...</p> : <Movies movies={movies} />
         }
       </main>
-    </div >
+    </div>
   )
 }
+
+

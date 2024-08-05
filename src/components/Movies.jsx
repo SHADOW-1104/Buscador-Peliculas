@@ -1,36 +1,31 @@
-function ListOfMovies({ movies }) { // Prop recivida desde RenderMovies
-
+function ListOfMovies ({ movies }) {
     return (
-
-        <ul>
-            {
-                movies.map(movie => (
-                    <li key={movie.id}>
-                        <h3>{movie.title}</h3>
-                        <p>{movie.year}</p>
-                        <img src={movie.poster} alt={movie.Title} />
-                    </li>
-                ))
-            }
-        </ul>
+      <ul className='movies'>
+        {
+          movies.map(movie => (
+            <li className='movie' key={movie.id}>
+              <h3>{movie.title}</h3>
+              <p>{movie.year}</p>
+              <img src={movie.image} alt={movie.title} />
+            </li>
+          ))
+        }
+      </ul>
     )
-
-}
-
-function NoResult({ noMovies }) { //Prop recivida desde RenderMovies
+  }
+  
+  function NoMoviesResults () {
     return (
-        <h4>{noMovies}</h4>
+      <p>No se encontraron películas para esta búsqueda</p>
     )
-}
-
-export function RenderMovies({ movies, noMovies }) { //Recivimos las props desde el componente padre App.jsx
+  }
+  
+  export function Movies ({ movies }) {
     const hasMovies = movies?.length > 0
-
+  
     return (
-        hasMovies ? 
-        <ListOfMovies movies={movies} /> //Lamada function components pasando las props de App.jsx
-        : 
-        <NoResult noMovies={noMovies} /> //Lamada function components pasando las props de App.jsx
+      hasMovies
+        ? <ListOfMovies movies={movies} />
+        : <NoMoviesResults />
     )
-
-}
+  }
